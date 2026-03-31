@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pre-registro de Viaje — FronteraDigital</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gov: { blue: '#003F8A', darkblue: '#002970', lightblue: '#0056B3', red: '#D40000' }
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-sans bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- NAVBAR -->
+  <nav class="bg-gov-blue shadow sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+        <span class="text-white font-bold">FronteraDigital</span>
+      </a>
+      <div class="flex items-center gap-4">
+        <span id="user-name" class="text-blue-200 text-sm hidden md:block"></span>
+        <button onclick="logout()" class="text-blue-200 hover:text-white text-sm transition">Cerrar sesión</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-10">
+    <h1 class="text-2xl font-bold text-gov-blue mb-1">Pre-registro de viaje</h1>
+    <p class="text-gray-500 text-sm mb-8">Completa la información antes de llegar al paso fronterizo.</p>
+
+    <!-- Barra de progreso -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between text-xs font-medium text-gray-500 mb-2">
+        <span id="step-label">Paso 1 de 4</span>
+        <span id="step-name">Datos personales</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2">
+        <div id="progress-bar" class="bg-gov-blue h-2 rounded-full transition-all duration-300" style="width: 25%"></div>
+      </div>
+      <!-- Indicadores de paso -->
+      <div class="flex justify-between mt-3">
+        <div class="step-dot flex flex-col items-center gap-1" data-step="1">
+          <div class="w-8 h-8 rounded-full bg-gov-blue text-white flex items-center justify-center text-xs font-bold">1</div>
+          <span class="text-xs text-gov-blue font-medium hidden sm:block">Personal</span>
+        </div>
+        <div class="step-dot flex flex-col items-center gap-1" data-step="2">
+          <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold">2</div>
+          <span class="text-xs text-gray-400 hidden sm:block">Vehículo</span>
+        </div>
+        <div class="step-dot flex flex-col items-center gap-1" data-step="3">
+          <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold">3</div>
+          <span class="text-xs text-gray-400 hidden sm:block">SAG</span>
+        </div>
+        <div class="step-dot flex flex-col items-center gap-1" data-step="4">
+          <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold">4</div>
+          <span class="text-xs text-gray-400 hidden sm:block">Menores</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error global -->
+    <div id="error-msg" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5"></div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+
+      <!-- PASO 1: DATOS PERSONALES -->
+      <div id="step-1" class="step-panel space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-gov-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          Datos personales
+        </h2>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
+          <input type="text" id="nombre_completo" placeholder="Juan Alberto Pérez González"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">RUT *</label>
+            <input type="text" id="rut" placeholder="12.345.678-9"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nacionalidad *</label>
+            <select id="nacionalidad"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition bg-white">
+              <option value="">Seleccionar...</option>
+              <option value="Chilena">Chilena</option>
+              <option value="Argentina">Argentina</option>
+              <option value="Peruana">Peruana</option>
+              <option value="Boliviana">Boliviana</option>
+              <option value="Colombiana">Colombiana</option>
+              <option value="Otra">Otra</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento *</label>
+            <input type="date" id="fecha_nacimiento"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">N° Pasaporte (opcional)</label>
+            <input type="text" id="num_pasaporte" placeholder="AA123456"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition" />
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: VEHÍCULO -->
+      <div id="step-2" class="step-panel hidden space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-gov-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+          </svg>
+          Vehículo
+        </h2>
+        <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+          <input type="checkbox" id="tiene_vehiculo" class="w-4 h-4 accent-gov-blue" />
+          <label for="tiene_vehiculo" class="text-sm font-medium text-gray-700">Viajo con vehículo propio o arrendado</label>
+        </div>
+        <div id="vehiculo-campos" class="hidden space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Patente *</label>
+              <input type="text" id="patente" placeholder="ABCD12"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition uppercase" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Marca y modelo *</label>
+              <input type="text" id="marca_modelo" placeholder="Toyota Corolla"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition" />
+            </div>
+          </div>
+        </div>
+        <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800">
+          <strong>Nota:</strong> Si no viaja con vehículo, avance al siguiente paso.
+        </div>
+      </div>
+
+      <!-- PASO 3: DECLARACIÓN SAG -->
+      <div id="step-3" class="step-panel hidden space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          </svg>
+          Declaración SAG
+        </h2>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+          <strong>Importante:</strong> Declare todos los productos de origen vegetal o animal que porta. La omisión puede resultar en multas o decomiso.
+        </div>
+        <p class="text-sm font-medium text-gray-700">¿Porta alguno de los siguientes productos?</p>
+        <div class="space-y-3">
+          <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+            <input type="checkbox" id="declara_alimentos" class="w-4 h-4 accent-gov-blue" />
+            <div>
+              <span class="text-sm font-medium text-gray-700">Alimentos de origen animal</span>
+              <p class="text-xs text-gray-400">Carnes, lácteos, embutidos, mariscos, etc.</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+            <input type="checkbox" id="declara_plantas" class="w-4 h-4 accent-gov-blue" />
+            <div>
+              <span class="text-sm font-medium text-gray-700">Vegetales, frutas o semillas</span>
+              <p class="text-xs text-gray-400">Frutas frescas, verduras, plantas, semillas, etc.</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+            <input type="checkbox" id="declara_animales" class="w-4 h-4 accent-gov-blue" />
+            <div>
+              <span class="text-sm font-medium text-gray-700">Animales vivos o mascotas</span>
+              <p class="text-xs text-gray-400">Incluye mascotas con documentación sanitaria.</p>
+            </div>
+          </label>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Descripción adicional (opcional)</label>
+          <textarea id="descripcion_sag" rows="2" placeholder="Ej: 2 kg de manzanas, 1 perro con carnet de vacunas..."
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gov-blue transition resize-none"></textarea>
+        </div>
+      </div>
+
+      <!-- PASO 4: MENORES DE EDAD -->
+      <div id="step-4" class="step-panel hidden space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-gov-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Menores de edad
+        </h2>
+        <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+          <input type="checkbox" id="tiene_menores" class="w-4 h-4 accent-gov-blue" />
+          <label for="tiene_menores" class="text-sm font-medium text-gray-700">Viajo con menores de 18 años</label>
+        </div>
+        <div id="menores-campos" class="hidden space-y-3">
+          <div id="lista-menores"></div>
+          <button type="button" onclick="agregarMenor()"
+            class="flex items-center gap-2 text-sm text-gov-blue hover:text-gov-lightblue font-medium transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Agregar menor
+          </button>
+        </div>
+        <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800">
+          <strong>Recuerde:</strong> Para viajar con menores de edad que no sean sus hijos, debe contar con autorización notarial. Esta debe presentarse en el paso fronterizo.
+        </div>
+      </div>
+
+      <!-- BOTONES DE NAVEGACIÓN -->
+      <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
+        <button id="btn-prev" onclick="cambiarPaso(-1)"
+          class="hidden flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 font-medium transition px-4 py-2 rounded-lg border border-gray-200 hover:border-gray-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Anterior
+        </button>
+        <div class="flex-1"></div>
+        <button id="btn-next" onclick="cambiarPaso(1)"
+          class="flex items-center gap-2 bg-gov-blue text-white text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-gov-lightblue transition">
+          Siguiente
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+        <button id="btn-submit" onclick="enviarFormulario()"
+          class="hidden flex items-center gap-2 bg-green-600 text-white text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-green-700 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          <span id="submit-text">Generar QR</span>
+          <svg id="submit-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/pre-registro.js"></script>
+  <script>
+    let pasoActual = 1
+    const totalPasos = 4
+    const stepNames = ['Datos personales', 'Vehículo', 'Declaración SAG', 'Menores de edad']
+    let menoresCount = 0
+
+    // Verificar auth al cargar
+    ;(async () => {
+      const user = await requirePasajero()
+      if (!user) return
+      if (user.profile?.nombre) {
+        document.getElementById('user-name').textContent =
+          `${user.profile.nombre} ${user.profile.apellido || ''}`.trim()
+        document.getElementById('user-name').classList.remove('hidden')
+      }
+    })()
+
+    // Toggle vehículo
+    document.getElementById('tiene_vehiculo').addEventListener('change', function() {
+      document.getElementById('vehiculo-campos').classList.toggle('hidden', !this.checked)
+    })
+
+    // Toggle menores
+    document.getElementById('tiene_menores').addEventListener('change', function() {
+      document.getElementById('menores-campos').classList.toggle('hidden', !this.checked)
+      if (this.checked && menoresCount === 0) agregarMenor()
+    })
+
+    function agregarMenor() {
+      menoresCount++
+      const container = document.getElementById('lista-menores')
+      const div = document.createElement('div')
+      div.id = `menor-${menoresCount}`
+      div.className = 'border border-gray-200 rounded-lg p-4 space-y-3 relative'
+      div.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-gray-700">Menor ${menoresCount}</span>
+          <button type="button" onclick="document.getElementById('menor-${menoresCount}').remove(); menoresCount--"
+            class="text-gray-400 hover:text-red-500 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Nombre completo</label>
+            <input type="text" placeholder="Nombre del menor" class="menor-nombre w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gov-blue" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">RUT</label>
+            <input type="text" placeholder="12.345.678-9" class="menor-rut w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gov-blue" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Relación con el menor</label>
+          <select class="menor-relacion w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gov-blue bg-white">
+            <option value="hijo">Hijo/a</option>
+            <option value="nieto">Nieto/a</option>
+            <option value="sobrino">Sobrino/a</option>
+            <option value="otro">Otro (requiere autorización notarial)</option>
+          </select>
+        </div>
+      `
+      container.appendChild(div)
+    }
+
+    function actualizarUI() {
+      // Ocultar todos los pasos
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'))
+      document.getElementById(`step-${pasoActual}`).classList.remove('hidden')
+
+      // Barra de progreso
+      document.getElementById('progress-bar').style.width = `${(pasoActual / totalPasos) * 100}%`
+      document.getElementById('step-label').textContent = `Paso ${pasoActual} de ${totalPasos}`
+      document.getElementById('step-name').textContent = stepNames[pasoActual - 1]
+
+      // Dots
+      document.querySelectorAll('.step-dot').forEach(dot => {
+        const step = parseInt(dot.dataset.step)
+        const circle = dot.querySelector('div')
+        const label = dot.querySelector('span')
+        if (step < pasoActual) {
+          circle.className = 'w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold'
+          circle.innerHTML = '✓'
+          if (label) { label.className = 'text-xs text-green-600 font-medium hidden sm:block' }
+        } else if (step === pasoActual) {
+          circle.className = 'w-8 h-8 rounded-full bg-gov-blue text-white flex items-center justify-center text-xs font-bold'
+          circle.textContent = step
+          if (label) { label.className = 'text-xs text-gov-blue font-medium hidden sm:block' }
+        } else {
+          circle.className = 'w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-xs font-bold'
+          circle.textContent = step
+          if (label) { label.className = 'text-xs text-gray-400 hidden sm:block' }
+        }
+      })
+
+      // Botones
+      document.getElementById('btn-prev').classList.toggle('hidden', pasoActual === 1)
+      document.getElementById('btn-next').classList.toggle('hidden', pasoActual === totalPasos)
+      document.getElementById('btn-submit').classList.toggle('hidden', pasoActual !== totalPasos)
+    }
+
+    function validarPasoActual() {
+      if (pasoActual === 1) {
+        if (!document.getElementById('nombre_completo').value.trim()) { showError('Ingresa tu nombre completo.'); return false }
+        if (!document.getElementById('rut').value.trim()) { showError('Ingresa tu RUT.'); return false }
+        if (!document.getElementById('nacionalidad').value) { showError('Selecciona tu nacionalidad.'); return false }
+        if (!document.getElementById('fecha_nacimiento').value) { showError('Ingresa tu fecha de nacimiento.'); return false }
+      }
+      return true
+    }
+
+    function cambiarPaso(delta) {
+      if (delta > 0 && !validarPasoActual()) return
+      document.getElementById('error-msg').classList.add('hidden')
+      pasoActual = Math.max(1, Math.min(totalPasos, pasoActual + delta))
+      actualizarUI()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg')
+      el.textContent = msg
+      el.classList.remove('hidden')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    async function enviarFormulario() {
+      document.getElementById('error-msg').classList.add('hidden')
+      document.getElementById('submit-spinner').classList.remove('hidden')
+      document.getElementById('submit-text').textContent = 'Generando...'
+
+      // Recopilar menores
+      const menores = []
+      document.querySelectorAll('[id^="menor-"]').forEach(div => {
+        const nombre = div.querySelector('.menor-nombre')?.value.trim()
+        const rut = div.querySelector('.menor-rut')?.value.trim()
+        const relacion = div.querySelector('.menor-relacion')?.value
+        if (nombre) menores.push({ nombre, rut, relacion })
+      })
+
+      const formData = {
+        nombre_completo: document.getElementById('nombre_completo').value.trim(),
+        rut: document.getElementById('rut').value.trim(),
+        nacionalidad: document.getElementById('nacionalidad').value,
+        fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+        num_pasaporte: document.getElementById('num_pasaporte').value.trim(),
+        tiene_vehiculo: document.getElementById('tiene_vehiculo').checked,
+        patente: document.getElementById('patente').value.trim(),
+        marca_modelo: document.getElementById('marca_modelo').value.trim(),
+        declara_alimentos: document.getElementById('declara_alimentos').checked,
+        declara_plantas: document.getElementById('declara_plantas').checked,
+        declara_animales: document.getElementById('declara_animales').checked,
+        descripcion_sag: document.getElementById('descripcion_sag').value.trim(),
+        tiene_menores: document.getElementById('tiene_menores').checked,
+        datos_menores: menores,
+      }
+
+      try {
+        const registro = await submitPreRegistro(formData)
+        window.location.href = `confirmacion.html?codigo=${registro.codigo_qr}`
+      } catch (err) {
+        document.getElementById('submit-spinner').classList.add('hidden')
+        document.getElementById('submit-text').textContent = 'Generar QR'
+        showError('Error al guardar: ' + (err.message || 'intenta nuevamente.'))
+      }
+    }
+
+    // Inicializar
+    actualizarUI()
+  </script>
+</body>
+</html>

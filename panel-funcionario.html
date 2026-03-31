@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Funcionario — FronteraDigital</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gov: { blue: '#003F8A', darkblue: '#002970', lightblue: '#0056B3', red: '#D40000' }
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print { .no-print { display: none !important; } }
+  </style>
+</head>
+<body class="font-sans bg-gray-100 min-h-screen flex">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="no-print w-64 bg-gov-darkblue text-white flex flex-col fixed h-full z-40 transition-transform duration-200">
+    <!-- Logo -->
+    <div class="p-5 border-b border-white/10">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+        <span class="font-bold text-lg">FronteraDigital</span>
+      </div>
+      <p class="text-xs text-blue-300">Panel de Funcionario</p>
+    </div>
+
+    <!-- Perfil -->
+    <div class="p-4 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold text-sm" id="avatar-inicial">?</div>
+        <div>
+          <p class="text-sm font-semibold" id="sidebar-nombre">Cargando...</p>
+          <p class="text-xs text-blue-300 capitalize" id="sidebar-organismo">—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 p-4 space-y-1">
+      <button onclick="mostrarSeccion('validacion')"
+        class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-100 hover:bg-white/10 transition text-left active-nav">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+        </svg>
+        Validar QR
+      </button>
+      <button onclick="mostrarSeccion('registros')"
+        class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-100 hover:bg-white/10 transition text-left">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        Registros del día
+      </button>
+      <button onclick="mostrarSeccion('estadisticas')"
+        class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-100 hover:bg-white/10 transition text-left">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Estadísticas
+      </button>
+    </nav>
+
+    <!-- Logout -->
+    <div class="p-4 border-t border-white/10">
+      <button onclick="logout()"
+        class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-200 hover:bg-white/10 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="ml-64 flex-1 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="no-print bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <div>
+        <h1 id="page-title" class="text-xl font-bold text-gray-800">Validar QR</h1>
+        <p class="text-sm text-gray-400" id="page-subtitle">Ingresa el código del pasajero para validar su declaración</p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400" id="fecha-hora"></p>
+      </div>
+    </header>
+
+    <main class="flex-1 p-6 space-y-6">
+
+      <!-- ===== SECCIÓN: VALIDAR QR ===== -->
+      <div id="sec-validacion" class="seccion space-y-6">
+
+        <!-- Buscador de código -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 class="text-base font-semibold text-gray-700 mb-4">Ingresar código QR</h2>
+          <div class="flex gap-3">
+            <input type="text" id="codigo-input" maxlength="8" placeholder="Ej: AB3X7KQP"
+              class="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-gov-blue transition"
+              oninput="this.value = this.value.toUpperCase()"
+              onkeydown="if(event.key==='Enter') buscar()" />
+            <button onclick="buscar()" id="btn-buscar"
+              class="bg-gov-blue text-white px-6 py-3 rounded-lg font-medium text-sm hover:bg-gov-lightblue transition flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Buscar
+            </button>
+          </div>
+          <p class="text-xs text-gray-400 mt-2">El código tiene 8 caracteres (letras y números). Puedes escanearlo o ingresarlo manualmente.</p>
+
+          <!-- Error de búsqueda -->
+          <div id="busqueda-error" class="hidden mt-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3"></div>
+        </div>
+
+        <!-- Resultado de búsqueda -->
+        <div id="resultado-panel" class="hidden">
+          <!-- Card con datos del pasajero -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-start justify-between mb-5">
+              <div>
+                <h2 class="text-lg font-bold text-gray-800" id="res-nombre">—</h2>
+                <p class="text-sm text-gray-500">RUT: <span id="res-rut" class="font-mono">—</span></p>
+              </div>
+              <span id="res-estado-badge" class="px-3 py-1 rounded-full text-xs font-bold">—</span>
+            </div>
+
+            <!-- Grid de datos -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-6">
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-400 mb-1">Nacionalidad</p>
+                <p class="font-medium text-gray-800" id="res-nacionalidad">—</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-400 mb-1">Fecha nacimiento</p>
+                <p class="font-medium text-gray-800" id="res-fecha">—</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-400 mb-1">Pasaporte</p>
+                <p class="font-medium text-gray-800" id="res-pasaporte">—</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-400 mb-1">Vehículo</p>
+                <p class="font-medium text-gray-800" id="res-vehiculo">—</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-400 mb-1">Declaración SAG</p>
+                <p class="font-medium text-gray-800" id="res-sag">—</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-xs text-gray-400 mb-1">Menores</p>
+                <p class="font-medium text-gray-800" id="res-menores">—</p>
+              </div>
+            </div>
+
+            <!-- Alerta SAG si declara -->
+            <div id="alerta-sag" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-sm text-yellow-800">
+              <strong class="flex items-center gap-1 mb-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                Requiere revisión SAG
+              </strong>
+              <span id="alerta-sag-texto"></span>
+            </div>
+
+            <!-- Sección de validación (solo si está pendiente) -->
+            <div id="validacion-form" class="border-t border-gray-100 pt-5 space-y-3">
+              <h3 class="text-sm font-semibold text-gray-700">Resultado de la revisión</h3>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Observaciones (opcional)</label>
+                <textarea id="observaciones-input" rows="2" placeholder="Ej: Documentación verificada, sin observaciones..."
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gov-blue resize-none"></textarea>
+              </div>
+              <div class="flex gap-3">
+                <button onclick="validar('aprobado')" id="btn-aprobar"
+                  class="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition text-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  Aprobar
+                </button>
+                <button onclick="validar('rechazado')" id="btn-rechazar"
+                  class="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white font-semibold py-3 rounded-lg hover:bg-red-700 transition text-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  Rechazar
+                </button>
+              </div>
+            </div>
+
+            <!-- Mensaje tras validación -->
+            <div id="validado-msg" class="hidden border-t border-gray-100 pt-4"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SECCIÓN: REGISTROS DEL DÍA ===== -->
+      <div id="sec-registros" class="seccion hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-700">Registros de hoy</h2>
+            <button onclick="cargarRegistros()" class="text-sm text-gov-blue hover:underline">Actualizar</button>
+          </div>
+
+          <!-- Stats rápidas -->
+          <div class="grid grid-cols-4 gap-3 mb-5" id="stats-cards">
+            <div class="bg-gray-50 rounded-xl p-3 text-center">
+              <p class="text-2xl font-bold text-gray-800" id="stat-total">—</p>
+              <p class="text-xs text-gray-400">Total</p>
+            </div>
+            <div class="bg-green-50 rounded-xl p-3 text-center">
+              <p class="text-2xl font-bold text-green-600" id="stat-aprobados">—</p>
+              <p class="text-xs text-gray-400">Aprobados</p>
+            </div>
+            <div class="bg-red-50 rounded-xl p-3 text-center">
+              <p class="text-2xl font-bold text-red-600" id="stat-rechazados">—</p>
+              <p class="text-xs text-gray-400">Rechazados</p>
+            </div>
+            <div class="bg-yellow-50 rounded-xl p-3 text-center">
+              <p class="text-2xl font-bold text-yellow-600" id="stat-pendientes">—</p>
+              <p class="text-xs text-gray-400">Pendientes</p>
+            </div>
+          </div>
+
+          <!-- Tabla -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-100">
+                  <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide pb-3">Pasajero</th>
+                  <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide pb-3">RUT</th>
+                  <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide pb-3">Código</th>
+                  <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide pb-3">Hora</th>
+                  <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide pb-3">Estado</th>
+                  <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide pb-3">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-registros" class="divide-y divide-gray-50">
+                <tr>
+                  <td colspan="6" class="py-8 text-center text-gray-400 text-sm">Cargando registros...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SECCIÓN: ESTADÍSTICAS ===== -->
+      <div id="sec-estadisticas" class="seccion hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 class="text-base font-semibold text-gray-700 mb-6">Resumen del día</h2>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gov-blue text-white rounded-xl p-5 text-center">
+              <p class="text-3xl font-bold mb-1" id="est-total">—</p>
+              <p class="text-sm text-blue-100">Total ingresos</p>
+            </div>
+            <div class="bg-green-600 text-white rounded-xl p-5 text-center">
+              <p class="text-3xl font-bold mb-1" id="est-aprobados">—</p>
+              <p class="text-sm text-green-100">Aprobados</p>
+            </div>
+            <div class="bg-red-600 text-white rounded-xl p-5 text-center">
+              <p class="text-3xl font-bold mb-1" id="est-rechazados">—</p>
+              <p class="text-sm text-red-100">Rechazados</p>
+            </div>
+            <div class="bg-yellow-500 text-white rounded-xl p-5 text-center">
+              <p class="text-3xl font-bold mb-1" id="est-pendientes">—</p>
+              <p class="text-sm text-yellow-100">Pendientes</p>
+            </div>
+          </div>
+
+          <!-- Barra visual de proporción -->
+          <div class="mb-6">
+            <p class="text-sm font-medium text-gray-600 mb-2">Distribución de estados</p>
+            <div class="w-full h-6 bg-gray-100 rounded-full overflow-hidden flex" id="barra-estados">
+              <div class="h-full bg-green-500 transition-all" id="barra-aprobados" style="width:0%"></div>
+              <div class="h-full bg-red-500 transition-all" id="barra-rechazados" style="width:0%"></div>
+              <div class="h-full bg-yellow-400 transition-all" id="barra-pendientes" style="width:100%"></div>
+            </div>
+            <div class="flex gap-4 mt-2 text-xs text-gray-500">
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>Aprobados</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>Rechazados</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span>Pendientes</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-400">Estadísticas actualizadas en tiempo real. Solo se muestran registros del día de hoy.</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/panel.js"></script>
+  <script>
+    let registroActual = null
+
+    // ---- INIT ----
+    ;(async () => {
+      const user = await requireFuncionario()
+      if (!user) return
+
+      const nombre = `${user.profile?.nombre || ''} ${user.profile?.apellido || ''}`.trim()
+      const organismo = user.profile?.organismo || 'funcionario'
+
+      document.getElementById('sidebar-nombre').textContent = nombre || 'Funcionario'
+      document.getElementById('sidebar-organismo').textContent = organismo.toUpperCase()
+      document.getElementById('avatar-inicial').textContent = (nombre[0] || 'F').toUpperCase()
+
+      actualizarReloj()
+      setInterval(actualizarReloj, 1000)
+    })()
+
+    function actualizarReloj() {
+      const now = new Date()
+      document.getElementById('fecha-hora').textContent =
+        now.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) +
+        ' — ' + now.toLocaleTimeString('es-CL')
+    }
+
+    // ---- NAVEGACIÓN ----
+    const titulos = {
+      validacion: ['Validar QR', 'Ingresa el código del pasajero para validar su declaración'],
+      registros: ['Registros del día', 'Todos los pre-registros ingresados hoy'],
+      estadisticas: ['Estadísticas', 'Resumen de actividad del día actual'],
+    }
+
+    function mostrarSeccion(nombre) {
+      document.querySelectorAll('.seccion').forEach(s => s.classList.add('hidden'))
+      document.getElementById(`sec-${nombre}`).classList.remove('hidden')
+
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-white/20', 'text-white'))
+      event.currentTarget.classList.add('bg-white/20', 'text-white')
+
+      const [titulo, sub] = titulos[nombre]
+      document.getElementById('page-title').textContent = titulo
+      document.getElementById('page-subtitle').textContent = sub
+
+      if (nombre === 'registros' || nombre === 'estadisticas') cargarRegistros()
+    }
+
+    // ---- BUSCAR POR CÓDIGO ----
+    async function buscar() {
+      const codigo = document.getElementById('codigo-input').value.trim().toUpperCase()
+      if (codigo.length < 3) return
+
+      document.getElementById('busqueda-error').classList.add('hidden')
+      document.getElementById('resultado-panel').classList.add('hidden')
+      document.getElementById('btn-buscar').disabled = true
+      document.getElementById('btn-buscar').textContent = 'Buscando...'
+
+      const reg = await buscarPorCodigo(codigo)
+      document.getElementById('btn-buscar').disabled = false
+      document.getElementById('btn-buscar').innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg> Buscar`
+
+      if (!reg) {
+        const errEl = document.getElementById('busqueda-error')
+        errEl.textContent = `No se encontró ningún registro con el código "${codigo}". Verifica que el código sea correcto.`
+        errEl.classList.remove('hidden')
+        return
+      }
+
+      mostrarResultado(reg)
+    }
+
+    function mostrarResultado(reg) {
+      registroActual = reg
+
+      document.getElementById('res-nombre').textContent = reg.nombre_completo || '—'
+      document.getElementById('res-rut').textContent = reg.rut || '—'
+      document.getElementById('res-nacionalidad').textContent = reg.nacionalidad || '—'
+      document.getElementById('res-fecha').textContent = reg.fecha_nacimiento
+        ? new Date(reg.fecha_nacimiento + 'T00:00:00').toLocaleDateString('es-CL') : '—'
+      document.getElementById('res-pasaporte').textContent = reg.num_pasaporte || 'No porta'
+
+      // Vehículo
+      document.getElementById('res-vehiculo').textContent = reg.tiene_vehiculo
+        ? `${reg.patente || ''} ${reg.marca_modelo || ''}`.trim() || 'Sí'
+        : 'No'
+
+      // SAG
+      const sagItems = []
+      if (reg.declara_alimentos) sagItems.push('Alimentos')
+      if (reg.declara_plantas) sagItems.push('Plantas')
+      if (reg.declara_animales) sagItems.push('Animales')
+      document.getElementById('res-sag').textContent = sagItems.length ? sagItems.join(', ') : 'Sin declaración'
+
+      if (sagItems.length) {
+        document.getElementById('alerta-sag').classList.remove('hidden')
+        document.getElementById('alerta-sag-texto').textContent =
+          `Declara: ${sagItems.join(', ')}. ${reg.descripcion_sag || ''}`
+      } else {
+        document.getElementById('alerta-sag').classList.add('hidden')
+      }
+
+      // Menores
+      const menores = reg.datos_menores || []
+      document.getElementById('res-menores').textContent = menores.length
+        ? `${menores.length} menor(es)` : 'No'
+
+      // Badge de estado
+      const badge = document.getElementById('res-estado-badge')
+      badge.textContent = reg.estado.charAt(0).toUpperCase() + reg.estado.slice(1)
+      badge.className = 'px-3 py-1 rounded-full text-xs font-bold ' + estadoClase(reg.estado)
+
+      // Mostrar/ocultar formulario de validación
+      document.getElementById('validacion-form').classList.toggle('hidden', reg.estado !== 'pendiente')
+      document.getElementById('validado-msg').classList.toggle('hidden', reg.estado === 'pendiente')
+
+      if (reg.estado !== 'pendiente') {
+        const vm = document.getElementById('validado-msg')
+        vm.innerHTML = `
+          <div class="flex items-center gap-2 ${reg.estado === 'aprobado' ? 'text-green-700' : 'text-red-700'}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${reg.estado === 'aprobado' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"/>
+            </svg>
+            <span class="text-sm font-semibold">
+              Registro ya ${reg.estado === 'aprobado' ? 'aprobado' : 'rechazado'}.
+              ${reg.observaciones ? 'Obs: ' + reg.observaciones : ''}
+            </span>
+          </div>`
+      }
+
+      document.getElementById('resultado-panel').classList.remove('hidden')
+      document.getElementById('resultado-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    function estadoClase(estado) {
+      if (estado === 'aprobado') return 'bg-green-100 text-green-700'
+      if (estado === 'rechazado') return 'bg-red-100 text-red-700'
+      return 'bg-yellow-100 text-yellow-700'
+    }
+
+    // ---- VALIDAR ----
+    async function validar(estado) {
+      if (!registroActual) return
+      const observaciones = document.getElementById('observaciones-input').value.trim()
+
+      const btnAprobar = document.getElementById('btn-aprobar')
+      const btnRechazar = document.getElementById('btn-rechazar')
+      btnAprobar.disabled = true
+      btnRechazar.disabled = true
+
+      try {
+        const updated = await validarRegistro(registroActual.id, estado, observaciones)
+
+        // Actualizar badge
+        const badge = document.getElementById('res-estado-badge')
+        badge.textContent = estado.charAt(0).toUpperCase() + estado.slice(1)
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold ' + estadoClase(estado)
+
+        document.getElementById('validacion-form').classList.add('hidden')
+        const vm = document.getElementById('validado-msg')
+        vm.innerHTML = `
+          <div class="flex items-center gap-2 ${estado === 'aprobado' ? 'text-green-700' : 'text-red-700'} bg-${estado === 'aprobado' ? 'green' : 'red'}-50 rounded-lg p-3">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${estado === 'aprobado' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"/>
+            </svg>
+            <span class="text-sm font-semibold">Registro ${estado === 'aprobado' ? 'aprobado' : 'rechazado'} correctamente.</span>
+          </div>`
+        vm.classList.remove('hidden')
+
+        registroActual = updated
+      } catch (err) {
+        btnAprobar.disabled = false
+        btnRechazar.disabled = false
+        alert('Error al validar: ' + err.message)
+      }
+    }
+
+    // ---- REGISTROS DEL DÍA ----
+    async function cargarRegistros() {
+      const tbody = document.getElementById('tabla-registros')
+      tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">Cargando...</td></tr>'
+
+      const registros = await getRegistrosHoy()
+      const stats = {
+        total: registros.length,
+        aprobados: registros.filter(r => r.estado === 'aprobado').length,
+        rechazados: registros.filter(r => r.estado === 'rechazado').length,
+        pendientes: registros.filter(r => r.estado === 'pendiente').length,
+      }
+
+      // Actualizar stats (en ambas secciones)
+      ;['stat', 'est'].forEach(p => {
+        document.getElementById(`${p}-total`).textContent = stats.total
+        document.getElementById(`${p}-aprobados`).textContent = stats.aprobados
+        document.getElementById(`${p}-rechazados`).textContent = stats.rechazados
+        document.getElementById(`${p}-pendientes`).textContent = stats.pendientes
+      })
+
+      // Barras
+      if (stats.total > 0) {
+        document.getElementById('barra-aprobados').style.width = `${(stats.aprobados / stats.total * 100).toFixed(0)}%`
+        document.getElementById('barra-rechazados').style.width = `${(stats.rechazados / stats.total * 100).toFixed(0)}%`
+        document.getElementById('barra-pendientes').style.width = `${(stats.pendientes / stats.total * 100).toFixed(0)}%`
+      }
+
+      if (registros.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">No hay registros por hoy.</td></tr>'
+        return
+      }
+
+      tbody.innerHTML = registros.map(r => `
+        <tr class="hover:bg-gray-50 transition">
+          <td class="py-3 pr-4 font-medium text-gray-800">${r.nombre_completo || '—'}</td>
+          <td class="py-3 pr-4 font-mono text-gray-500 text-xs">${r.rut || '—'}</td>
+          <td class="py-3 pr-4 font-mono text-gov-blue font-bold text-xs">${r.codigo_qr}</td>
+          <td class="py-3 pr-4 text-gray-500 text-xs">${new Date(r.created_at).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'})}</td>
+          <td class="py-3 pr-4">
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${estadoClase(r.estado)}">${r.estado}</span>
+          </td>
+          <td class="py-3">
+            <button onclick="irAValidar('${r.codigo_qr}')" class="text-xs text-gov-blue hover:underline font-medium">
+              ${r.estado === 'pendiente' ? 'Validar' : 'Ver'}
+            </button>
+          </td>
+        </tr>
+      `).join('')
+    }
+
+    function irAValidar(codigo) {
+      document.getElementById('codigo-input').value = codigo
+      mostrarSeccion('validacion')
+      // Simular click en primer botón de nav
+      document.querySelector('.nav-btn').click()
+      buscar()
+    }
+  </script>
+</body>
+</html>
