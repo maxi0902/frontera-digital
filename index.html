@@ -30,13 +30,19 @@
   <!-- NAVBAR -->
   <nav class="bg-gov-blue shadow-lg sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-2">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-        </svg>
-        <span class="text-white font-bold text-xl">FronteraDigital</span>
-      </a>
+      <div class="flex items-center gap-4">
+        <!-- Logo Gobierno de Chile (esquina superior izquierda) -->
+        <img src="assets/Logo Gobierno.jpg" alt="Gobierno de Chile" class="h-9 object-contain rounded" />
+        <!-- Divisor -->
+        <div class="w-px h-8 bg-white/30"></div>
+        <a href="index.html" class="flex items-center gap-2">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+          <span class="text-white font-bold text-xl">FronteraDigital</span>
+        </a>
+      </div>
       <div class="hidden md:flex items-center gap-6 text-sm">
         <a href="#como-funciona" class="text-blue-200 hover:text-white transition">¿Cómo funciona?</a>
         <a href="#beneficios" class="text-blue-200 hover:text-white transition">Beneficios</a>
@@ -90,9 +96,9 @@
       </div>
     </div>
     <!-- Wave divider -->
-    <div class="overflow-hidden">
-      <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" class="w-full h-12 -mb-px fill-white">
-        <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z"/>
+    <div class="overflow-hidden leading-none">
+      <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg" class="w-full block" style="display:block; margin-bottom:-2px" fill="white">
+        <path d="M0,0 Q720,60 1440,0 L1440,60 L0,60 Z"/>
       </svg>
     </div>
   </section>
