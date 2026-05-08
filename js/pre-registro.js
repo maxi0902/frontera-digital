@@ -30,7 +30,11 @@ async function uploadDocumento(file, userId, tipo) {
     cacheControl: '3600',
     upsert: true,
   })
-  if (error) throw new Error(`Error al subir documento (${tipo}): ${error.message}`)
+  if (error) {
+    // No bloquear el registro si falla el storage — registrar advertencia
+    console.warn(`[FronteraDigital] No se pudo subir documento (${tipo}):`, error.message)
+    return null
+  }
   return path
 }
 
