@@ -91,6 +91,48 @@ CREATE POLICY "preregistros_update_funcionario" ON public.pre_registros
   );
 
 -- ============================================================
+-- COLUMNAS PARA DOCUMENTOS ADJUNTOS
+-- Si la tabla pre_registros ya existe, ejecuta solo este bloque
+-- ============================================================
+ALTER TABLE public.pre_registros
+  ADD COLUMN IF NOT EXISTS doc_identidad_url TEXT,
+  ADD COLUMN IF NOT EXISTS doc_vehiculo_url  TEXT,
+  ADD COLUMN IF NOT EXISTS doc_sag_url       TEXT,
+  ADD COLUMN IF NOT EXISTS doc_menores_url   TEXT;
+
+-- ============================================================
+-- STORAGE — Bucket privado para documentos
+-- ============================================================
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'documentos',
+  'documentos',
+  false,
+  5242880,
+  ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+) ON CONFLICT (id) DO NOTHING;
+
+-- Pasajero puede subir sus propios documentos
+CREATE POLICY IF NOT EXISTS "documentos_insert" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'documentos'
+    AND auth.uid()::text = (string_to_array(name, '/'))[1]
+  );
+
+-- Pasajero lee sus propios docs; funcionario lee todos
+CREATE POLICY IF NOT EXISTS "documentos_select" ON storage.objects
+  FOR SELECT USING (
+    bucket_id = 'documentos'
+    AND (
+      auth.uid()::text = (string_to_array(name, '/'))[1]
+      OR EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND tipo_usuario = 'funcionario'
+      )
+    )
+  );
+
+-- ============================================================
 -- NOTAS DE CONFIGURACIÓN
 -- ============================================================
 -- 1. Después de crear las tablas, ve a:
@@ -100,4 +142,8 @@ CREATE POLICY "preregistros_update_funcionario" ON public.pre_registros
 -- 2. Copia tu URL y anon key desde:
 --    Project Settings > API > Project URL / anon public
 --    y pégalos en js/supabase-config.js
+--
+-- 3. Para documentos adjuntos, también puedes crear el bucket
+--    manualmente desde: Storage > New bucket > "documentos"
+--    (privado, máx. 5 MB, tipos: pdf, jpg, png)
 -- ============================================================

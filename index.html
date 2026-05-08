@@ -179,6 +179,59 @@
     </div>
   </section>
 
+  <!-- ESTADÍSTICAS -->
+  <section id="estadisticas" class="py-16 bg-gov-darkblue text-white">
+    <div class="max-w-6xl mx-auto px-4 text-center">
+      <p class="text-blue-300 text-sm font-semibold uppercase tracking-widest mb-2">El impacto del sistema</p>
+      <h2 class="text-3xl font-bold mb-12">Números que hablan por sí solos</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div class="stat-item">
+          <p class="text-5xl font-extrabold text-white mb-2">
+            +<span class="counter" data-target="1200">0</span>
+          </p>
+          <p class="text-blue-300 text-sm">Pre-registros procesados</p>
+        </div>
+        <div class="stat-item">
+          <p class="text-5xl font-extrabold text-white mb-2">
+            <span class="counter" data-target="3">0</span>
+          </p>
+          <p class="text-blue-300 text-sm">Pasos fronterizos</p>
+        </div>
+        <div class="stat-item">
+          <p class="text-5xl font-extrabold text-white mb-2">
+            <span class="counter" data-target="3">0</span>
+          </p>
+          <p class="text-blue-300 text-sm">Organismos conectados</p>
+        </div>
+        <div class="stat-item">
+          <p class="text-5xl font-extrabold text-white mb-2">
+            <span class="counter" data-target="30">0</span><span class="text-2xl font-bold text-blue-300">s</span>
+          </p>
+          <p class="text-blue-300 text-sm">Tiempo promedio de validación</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script>
+    const counters = document.querySelectorAll('.counter')
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting || entry.target.dataset.done) return
+        entry.target.dataset.done = '1'
+        const target = +entry.target.dataset.target
+        const duration = 1400
+        const step = Math.ceil(target / (duration / 16))
+        let current = 0
+        const timer = setInterval(() => {
+          current = Math.min(current + step, target)
+          entry.target.textContent = current.toLocaleString('es-CL')
+          if (current >= target) clearInterval(timer)
+        }, 16)
+      })
+    }, { threshold: 0.4 })
+    counters.forEach(c => observer.observe(c))
+  </script>
+
   <!-- BENEFICIOS -->
   <section id="beneficios" class="py-20 bg-white">
     <div class="max-w-6xl mx-auto px-4">
@@ -272,16 +325,63 @@
 
   <!-- FOOTER -->
   <footer class="bg-gov-darkblue text-blue-200 text-sm">
-    <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
-        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-        </svg>
-        <span class="text-white font-semibold">FronteraDigital</span>
+    <div class="max-w-6xl mx-auto px-4 pt-12 pb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-8">
+        <!-- Columna 1: Marca -->
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            <span class="text-white font-bold text-lg">FronteraDigital</span>
+          </div>
+          <p class="text-blue-300 leading-relaxed text-xs">
+            Sistema integrado de pre-registro para el control fronterizo entre Chile y Argentina.
+            Digitaliza el proceso migratorio y reduce los tiempos de espera en los pasos fronterizos.
+          </p>
+        </div>
+        <!-- Columna 2: Links -->
+        <div>
+          <p class="text-white font-semibold mb-4 text-xs uppercase tracking-widest">Navegación</p>
+          <ul class="space-y-2">
+            <li><a href="#como-funciona" class="hover:text-white transition">¿Cómo funciona?</a></li>
+            <li><a href="#estadisticas" class="hover:text-white transition">Estadísticas</a></li>
+            <li><a href="#beneficios" class="hover:text-white transition">Beneficios</a></li>
+            <li><a href="registro.html" class="hover:text-white transition">Registrarse</a></li>
+            <li><a href="login.html" class="hover:text-white transition">Ingresar al sistema</a></li>
+          </ul>
+        </div>
+        <!-- Columna 3: Institucional -->
+        <div>
+          <p class="text-white font-semibold mb-4 text-xs uppercase tracking-widest">Información institucional</p>
+          <ul class="space-y-2 text-xs">
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+              Ministerio del Interior y Seguridad Pública
+            </li>
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              PDI · Aduana · SAG · Sistema Integrado Binacional
+            </li>
+            <li class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              Datos cifrados y protegidos bajo ley N° 19.628
+            </li>
+          </ul>
+        </div>
       </div>
-      <p>Sistema Integrado de Control Fronterizo — Gobierno de Chile</p>
-      <p>Prototipo académico — Ingeniería de Software</p>
+      <!-- Línea divisora + copyright -->
+      <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-blue-400">
+        <p>© 2025 FronteraDigital — Gobierno de Chile. Todos los derechos reservados.</p>
+        <p>Prototipo académico · Ingeniería de Software</p>
+      </div>
     </div>
   </footer>
 

@@ -26,6 +26,9 @@
 </head>
 <body class="font-sans bg-gray-100 min-h-screen flex">
 
+  <!-- Toast container -->
+  <div id="toast-container" class="no-print fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
   <!-- SIDEBAR -->
   <aside id="sidebar" class="no-print w-64 bg-gov-darkblue text-white flex flex-col fixed h-full z-40 transition-transform duration-200">
     <!-- Logo -->
@@ -62,10 +65,11 @@
       </button>
       <button onclick="mostrarSeccion('registros')"
         class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-100 hover:bg-white/10 transition text-left">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
         </svg>
-        Registros del día
+        <span class="flex-1">Registros del día</span>
+        <span id="sidebar-badge" class="hidden bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
       </button>
       <button onclick="mostrarSeccion('estadisticas')"
         class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-100 hover:bg-white/10 transition text-left">
@@ -180,6 +184,17 @@
               <span id="alerta-sag-texto"></span>
             </div>
 
+            <!-- Documentos adjuntos -->
+            <div id="docs-section" class="hidden border-t border-gray-100 pt-4 mb-4">
+              <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4 text-gov-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                </svg>
+                Documentos adjuntos
+              </h3>
+              <div id="lista-docs" class="flex flex-wrap gap-2"></div>
+            </div>
+
             <!-- Sección de validación (solo si está pendiente) -->
             <div id="validacion-form" class="border-t border-gray-100 pt-5 space-y-3">
               <h3 class="text-sm font-semibold text-gray-700">Resultado de la revisión</h3>
@@ -217,7 +232,16 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-base font-semibold text-gray-700">Registros de hoy</h2>
-            <button onclick="cargarRegistros()" class="text-sm text-gov-blue hover:underline">Actualizar</button>
+            <div class="flex items-center gap-3">
+              <button onclick="exportarCSV()" id="btn-exportar"
+                class="flex items-center gap-1.5 text-sm font-medium text-gov-blue border border-gov-blue/30 hover:bg-gov-blue hover:text-white px-3 py-1.5 rounded-lg transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Exportar CSV
+              </button>
+              <button onclick="cargarRegistros()" class="text-sm text-gray-500 hover:text-gov-blue transition">Actualizar</button>
+            </div>
           </div>
 
           <!-- Stats rápidas -->
@@ -240,6 +264,33 @@
             </div>
           </div>
 
+          <!-- Barra de filtros -->
+          <div class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <div class="relative flex-1 min-w-48">
+              <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input type="text" id="filtro-texto" placeholder="Buscar por nombre o RUT..."
+                class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gov-blue/30 focus:border-gov-blue transition"
+                oninput="filtrarTabla()" />
+            </div>
+            <select id="filtro-estado" onchange="filtrarTabla()"
+              class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gov-blue/30 focus:border-gov-blue transition">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aprobado">Aprobado</option>
+              <option value="rechazado">Rechazado</option>
+            </select>
+            <button onclick="limpiarFiltros()"
+              class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 px-3 py-2 border border-gray-200 rounded-lg hover:bg-white transition bg-white">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Limpiar
+            </button>
+            <span id="filtro-conteo" class="flex items-center text-xs text-gray-400 px-2"></span>
+          </div>
+
           <!-- Tabla -->
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -255,7 +306,12 @@
               </thead>
               <tbody id="tabla-registros" class="divide-y divide-gray-50">
                 <tr>
-                  <td colspan="6" class="py-8 text-center text-gray-400 text-sm">Cargando registros...</td>
+                  <td colspan="6" class="py-10 text-center">
+                    <svg class="w-10 h-10 mx-auto text-gray-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <p class="text-gray-400 text-sm">Cargando registros...</p>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -314,6 +370,7 @@
   <script src="js/panel.js"></script>
   <script>
     let registroActual = null
+    let registrosData = []
 
     // ---- INIT ----
     ;(async () => {
@@ -421,6 +478,26 @@
       document.getElementById('res-menores').textContent = menores.length
         ? `${menores.length} menor(es)` : 'No'
 
+      // Documentos adjuntos
+      const docsInfo = [
+        { url: reg.doc_identidad_url, label: 'Cédula / Pasaporte' },
+        { url: reg.doc_vehiculo_url,  label: 'Seguro del vehículo' },
+        { url: reg.doc_sag_url,       label: 'Certificado SAG' },
+        { url: reg.doc_menores_url,   label: 'Autorización de menores' },
+      ].filter(d => d.url)
+
+      const docsSection = document.getElementById('docs-section')
+      docsSection.classList.toggle('hidden', docsInfo.length === 0)
+      document.getElementById('lista-docs').innerHTML = docsInfo.map(d => `
+        <button onclick="verDocumento('${d.url}')"
+          class="flex items-center gap-1.5 text-xs font-medium text-gov-blue bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-gov-blue hover:text-white transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          ${d.label}
+        </button>
+      `).join('')
+
       // Badge de estado
       const badge = document.getElementById('res-estado-badge')
       badge.textContent = reg.estado.charAt(0).toUpperCase() + reg.estado.slice(1)
@@ -487,16 +564,24 @@
       } catch (err) {
         btnAprobar.disabled = false
         btnRechazar.disabled = false
-        alert('Error al validar: ' + err.message)
+        mostrarToast('Error al validar: ' + err.message, 'error')
       }
     }
 
     // ---- REGISTROS DEL DÍA ----
     async function cargarRegistros() {
       const tbody = document.getElementById('tabla-registros')
-      tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">Cargando...</td></tr>'
+      tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center">
+        <svg class="w-8 h-8 mx-auto text-gray-200 mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <p class="text-gray-400 text-sm">Cargando registros...</p>
+      </td></tr>`
 
       const registros = await getRegistrosHoy()
+      registrosData = registros
+
       const stats = {
         total: registros.length,
         aprobados: registros.filter(r => r.estado === 'aprobado').length,
@@ -519,13 +604,54 @@
         document.getElementById('barra-pendientes').style.width = `${(stats.pendientes / stats.total * 100).toFixed(0)}%`
       }
 
-      if (registros.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-400 text-sm">No hay registros por hoy.</td></tr>'
+      // Badge en sidebar
+      const badge = document.getElementById('sidebar-badge')
+      if (stats.total > 0) {
+        badge.textContent = stats.total
+        badge.classList.remove('hidden')
+      } else {
+        badge.classList.add('hidden')
+      }
+
+      filtrarTabla()
+    }
+
+    // ---- FILTROS ----
+    function filtrarTabla() {
+      const texto = (document.getElementById('filtro-texto')?.value || '').toLowerCase()
+      const estado = document.getElementById('filtro-estado')?.value || ''
+      const tbody = document.getElementById('tabla-registros')
+
+      const filtrados = registrosData.filter(r => {
+        const coincideTexto = !texto ||
+          (r.nombre_completo || '').toLowerCase().includes(texto) ||
+          (r.rut || '').toLowerCase().includes(texto)
+        const coincideEstado = !estado || r.estado === estado
+        return coincideTexto && coincideEstado
+      })
+
+      const conteo = document.getElementById('filtro-conteo')
+      if (conteo) {
+        conteo.textContent = texto || estado
+          ? `${filtrados.length} de ${registrosData.length} registros`
+          : `${registrosData.length} registros`
+      }
+
+      if (filtrados.length === 0) {
+        const msg = registrosData.length === 0 ? 'No hay registros por hoy.' : 'No hay resultados para los filtros aplicados.'
+        tbody.innerHTML = `<tr><td colspan="6" class="py-10 text-center">
+          <svg class="w-10 h-10 mx-auto text-gray-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          <p class="text-gray-400 text-sm">${msg}</p>
+        </td></tr>`
         return
       }
 
-      tbody.innerHTML = registros.map(r => `
-        <tr class="hover:bg-gray-50 transition">
+      const bordeEstado = { aprobado: 'border-l-green-500', rechazado: 'border-l-red-500', pendiente: 'border-l-yellow-400' }
+
+      tbody.innerHTML = filtrados.map(r => `
+        <tr class="hover:bg-gray-50 transition border-l-4 ${bordeEstado[r.estado] || ''}">
           <td class="py-3 pr-4 font-medium text-gray-800">${r.nombre_completo || '—'}</td>
           <td class="py-3 pr-4 font-mono text-gray-500 text-xs">${r.rut || '—'}</td>
           <td class="py-3 pr-4 font-mono text-gov-blue font-bold text-xs">${r.codigo_qr}</td>
@@ -542,12 +668,111 @@
       `).join('')
     }
 
+    function limpiarFiltros() {
+      const txt = document.getElementById('filtro-texto')
+      const sel = document.getElementById('filtro-estado')
+      if (txt) txt.value = ''
+      if (sel) sel.value = ''
+      filtrarTabla()
+    }
+
     function irAValidar(codigo) {
       document.getElementById('codigo-input').value = codigo
-      mostrarSeccion('validacion')
-      // Simular click en primer botón de nav
-      document.querySelector('.nav-btn').click()
+      document.querySelectorAll('.seccion').forEach(s => s.classList.add('hidden'))
+      document.getElementById('sec-validacion').classList.remove('hidden')
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-white/20', 'text-white'))
+      document.querySelector('.nav-btn').classList.add('bg-white/20', 'text-white')
+      document.getElementById('page-title').textContent = 'Validar QR'
+      document.getElementById('page-subtitle').textContent = 'Ingresa el código del pasajero para validar su declaración'
       buscar()
+    }
+
+    // ---- EXPORTAR CSV ----
+    function exportarCSV() {
+      const texto = (document.getElementById('filtro-texto')?.value || '').toLowerCase()
+      const estado = document.getElementById('filtro-estado')?.value || ''
+      const datos = registrosData.filter(r => {
+        const coincideTexto = !texto ||
+          (r.nombre_completo || '').toLowerCase().includes(texto) ||
+          (r.rut || '').toLowerCase().includes(texto)
+        const coincideEstado = !estado || r.estado === estado
+        return coincideTexto && coincideEstado
+      })
+
+      if (datos.length === 0) {
+        mostrarToast('No hay registros para exportar.', 'warning')
+        return
+      }
+
+      const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`
+      const headers = ['Pasajero', 'RUT', 'Código QR', 'Hora', 'Estado', 'Vehículo', 'SAG', 'Menores', 'Observaciones']
+      const filas = datos.map(r => {
+        const sagItems = [r.declara_alimentos && 'Alimentos', r.declara_plantas && 'Plantas', r.declara_animales && 'Animales'].filter(Boolean)
+        const hora = new Date(r.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+        return [
+          escape(r.nombre_completo),
+          escape(r.rut),
+          escape(r.codigo_qr),
+          escape(hora),
+          escape(r.estado),
+          escape(r.tiene_vehiculo ? `${r.patente || ''} ${r.marca_modelo || ''}`.trim() : 'No'),
+          escape(sagItems.length ? sagItems.join(', ') : 'Sin declaración'),
+          escape(r.tiene_menores ? `${(r.datos_menores || []).length} menor(es)` : 'No'),
+          escape(r.observaciones || ''),
+        ].join(',')
+      })
+
+      const csv = '﻿' + [headers.join(','), ...filas].join('\r\n')
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      const fecha = new Date().toLocaleDateString('es-CL').replace(/\//g, '-')
+      a.href = url
+      a.download = `registros-${fecha}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      mostrarToast(`${datos.length} registros exportados correctamente.`, 'success')
+    }
+
+    // ---- VER DOCUMENTO (signed URL de Supabase Storage) ----
+    async function verDocumento(path) {
+      try {
+        const { data, error } = await _sb.storage.from('documentos').createSignedUrl(path, 120)
+        if (error) throw error
+        window.open(data.signedUrl, '_blank')
+      } catch (err) {
+        mostrarToast('No se pudo abrir el documento: ' + err.message, 'error')
+      }
+    }
+
+    // ---- TOAST ----
+    function mostrarToast(mensaje, tipo = 'success') {
+      const colores = {
+        success: 'bg-green-600',
+        error: 'bg-red-600',
+        warning: 'bg-yellow-500',
+      }
+      const iconos = {
+        success: 'M5 13l4 4L19 7',
+        error: 'M6 18L18 6M6 6l12 12',
+        warning: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z',
+      }
+      const toast = document.createElement('div')
+      toast.className = `pointer-events-auto flex items-center gap-3 ${colores[tipo] || colores.success} text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg max-w-sm transition-all duration-300 opacity-0 translate-y-2`
+      toast.innerHTML = `
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconos[tipo] || iconos.success}"/>
+        </svg>
+        <span>${mensaje}</span>`
+      document.getElementById('toast-container').appendChild(toast)
+      requestAnimationFrame(() => {
+        toast.classList.remove('opacity-0', 'translate-y-2')
+        toast.classList.add('opacity-100', 'translate-y-0')
+      })
+      setTimeout(() => {
+        toast.classList.add('opacity-0')
+        setTimeout(() => toast.remove(), 300)
+      }, 3500)
     }
   </script>
 </body>

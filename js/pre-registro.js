@@ -16,18 +16,49 @@ function generarCodigoQR() {
 }
 
 /**
- * Guarda el pre-registro en Supabase.
+ * Sube un archivo a Supabase Storage bajo la carpeta del usuario.
+ * @param {File|null} file
+ * @param {string} userId
+ * @param {string} tipo  'identidad' | 'vehiculo' | 'sag' | 'menores'
+ * @returns {string|null} ruta en storage, o null si no hay archivo
+ */
+async function uploadDocumento(file, userId, tipo) {
+  if (!file) return null
+  const ext = file.name.split('.').pop().toLowerCase()
+  const path = `${userId}/${tipo}-${Date.now()}.${ext}`
+  const { error } = await _sb.storage.from('documentos').upload(path, file, {
+    cacheControl: '3600',
+    upsert: true,
+  })
+  if (error) throw new Error(`Error al subir documento (${tipo}): ${error.message}`)
+  return path
+}
+
+/**
+ * Guarda el pre-registro en Supabase (incluye subida de documentos).
  * @param {object} formData - todos los campos del formulario
  * @returns {object} el registro creado con su codigo_qr
  */
-async function submitPreRegistro(formData) {
+async function submitPreRegistro(formData, onProgress) {
   const { data: { session } } = await _sb.auth.getSession()
   if (!session) throw new Error('No hay sesión activa')
 
+  const userId = session.user.id
   const codigo = generarCodigoQR()
 
+  // Subir documentos adjuntos (en paralelo)
+  if (onProgress) onProgress('Subiendo documentos...')
+  const [docIdentidadUrl, docVehiculoUrl, docSagUrl, docMenoresUrl] = await Promise.all([
+    uploadDocumento(formData.doc_identidad, userId, 'identidad'),
+    uploadDocumento(formData.doc_vehiculo,  userId, 'vehiculo'),
+    uploadDocumento(formData.doc_sag,       userId, 'sag'),
+    uploadDocumento(formData.doc_menores,   userId, 'menores'),
+  ])
+
+  if (onProgress) onProgress('Guardando registro...')
+
   const payload = {
-    user_id: session.user.id,
+    user_id: userId,
     codigo_qr: codigo,
     estado: 'pendiente',
     nombre_completo: formData.nombre_completo,
@@ -44,6 +75,10 @@ async function submitPreRegistro(formData) {
     descripcion_sag: formData.descripcion_sag || null,
     tiene_menores: formData.tiene_menores === true,
     datos_menores: formData.datos_menores || [],
+    doc_identidad_url: docIdentidadUrl,
+    doc_vehiculo_url:  docVehiculoUrl,
+    doc_sag_url:       docSagUrl,
+    doc_menores_url:   docMenoresUrl,
   }
 
   const { data, error } = await _sb.from('pre_registros').insert(payload).select().single()
